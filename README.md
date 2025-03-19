@@ -1,7 +1,15 @@
-# Deep Research
+<div align="center">
+<h1>Deep Research</h1>
 
+![GitHub Release](https://img.shields.io/github/v/release/u14app/deep-research)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Next.js 15](https://img.shields.io/badge/Next.js-15-blueviolet)](https://nextjs.org/)
+
+[![Gemini](https://img.shields.io/badge/Gemini-8E75B2?style=flat&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
+[![Next](https://img.shields.io/badge/Next.js-111111?style=flat&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![shadcn/ui](https://img.shields.io/badge/shadcn/ui-111111?style=flat&logo=shadcnui&logoColor=white)](https://ui.shadcn.com/)
+
+</div>
 
 **Lightning-Fast Deep Research Reports Powered by Google Gemini**
 
@@ -19,7 +27,25 @@ Deep Research is a cutting-edge project built with Next.js 15, leveraging the po
 - **Built with Modern Technologies:** Developed using Next.js 15 and Shadcn UI, ensuring a modern, performant, and visually appealing user experience.
 - **MIT Licensed:** Open-source and freely available for personal and commercial use under the MIT License.
 
+## 🎯 Roadmap
+
+- [ ] Support editing final report and search results
+- [ ] Support preservation of research history
+- [ ] Support file upload and local knowledge base
+- [ ] Support for other LLM models
+
 ## 🚀 Getting Started
+
+1. Get [Gemini API Key](https://aistudio.google.com/app/apikey)
+2. One-click deployment of the project, you can choose to deploy to Vercel or Cloudflare
+
+   [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fu14app%2Fdeep-research&project-name=deep-research&repository-name=deep-research)
+
+   Currently the project supports deployment to Cloudflare, but you need to follow [How to deploy to Cloudflare Pages](./docs/How-to-deploy-to-Cloudflare-Pages.md) to do it.
+
+3. Start using
+
+## ⌨️ Development
 
 Follow these steps to get Deep Research up and running on your local browser.
 
@@ -45,7 +71,7 @@ Follow these steps to get Deep Research up and running on your local browser.
 
 3. **Set up Environment Variables:**
 
-   Create a `.env` or `.env.local` file in the root directory of your project and configure the following environment variables:
+   Create a `.env` file in the root directory of your project and configure the following environment variables:
 
    ```env
    # (Optional) Server-side Gemini API Key (Required for server API calls)
@@ -77,6 +103,75 @@ Follow these steps to get Deep Research up and running on your local browser.
    ```
 
    Open your browser and visit [http://localhost:3000](http://localhost:3000) to access Deep Research.
+
+## 🚢 Deployment
+
+### Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fu14app%2Fdeep-research&project-name=deep-research&repository-name=deep-research)
+
+### Cloudflare
+
+Currently the project supports deployment to Cloudflare, but you need to follow [How to deploy to Cloudflare Pages](./docs/How-to-deploy-to-Cloudflare-Pages.md) to do it.
+
+### Docker
+
+> The Docker version needs to be 20 or above, otherwise it will prompt that the image cannot be found.
+
+> ⚠️ Note: Most of the time, the docker version will lag behind the latest version by 1 to 2 days, so the "update exists" prompt will continue to appear after deployment, which is normal.
+
+```bash
+docker pull xiangfa/deep-research:latest
+docker run -d --name deep-research -p 3333:3000 xiangfa/deep-research
+```
+
+You can also specify additional environment variables:
+
+```bash
+docker run -d --name deep-research \
+   -p 3333:3000 \
+   -e GOOGLE_GENERATIVE_AI_API_KEY=AIzaSy... \
+   -e ACCESS_PASSWORD=your-password \
+   xiangfa/deep-research
+```
+
+or build your own docker image:
+
+```bash
+docker build -t deep-research .
+docker run -d --name deep-research -p 3333:3000 deep-research
+```
+
+If you need to specify other environment variables, please add `-e key=value` to the above command to specify it.
+
+Deploy using `docker-compose.yml`:
+
+```bash
+version: '3.9'
+services:
+   deep-research:
+      image: xiangfa/deep-research
+      container_name: deep-research
+      environment:
+         - GOOGLE_GENERATIVE_AI_API_KEY=AIzaSy...
+         - ACCESS_PASSWORD=your-password
+      ports:
+         - 3333:3000
+```
+
+or build your own docker compose:
+
+```bash
+docker compose -f docker-compose.yml build
+```
+
+### Static Deployment
+
+You can also build a static page version directly, and then upload all files in the `out` directory to any website service that supports static pages, such as Github Page, Cloudflare, Vercel, etc..
+
+```bash
+pnpm build:export
+```
 
 ## ⚙️ Configuration
 

@@ -11,13 +11,13 @@ import { downloadFile } from "@/utils/file";
 function FinalReport() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { writeFinalReport } = useDeepResearch();
-  const [isThinking, setIsThinking] = useState<boolean>(false);
+  const { status, writeFinalReport } = useDeepResearch();
+  const [isWriting, setIsWriting] = useState<boolean>(false);
 
   async function handleWriteFinalReport() {
-    setIsThinking(true);
-    writeFinalReport();
-    setIsThinking(false);
+    setIsWriting(true);
+    await writeFinalReport();
+    setIsWriting(false);
   }
 
   async function handleDownloadPDF() {
@@ -25,7 +25,7 @@ function FinalReport() {
     printJS({
       printable: "final-report",
       type: "html",
-      header: taskStore.question,
+      documentTitle: taskStore.title,
     });
   }
 
@@ -40,41 +40,37 @@ function FinalReport() {
         <>
           <article
             id="final-report"
-            className="prose prose-slate dark:prose-invert mt-6"
+            className="prose prose-slate dark:prose-invert mt-6 mx-2"
           >
             <Magicdown>{taskStore.finalReport}</Magicdown>
           </article>
-          <div className="flex gap-4 max-sm:gap-2 w-full border-t mt-4 pt-4">
+          <div className="grid grid-cols-3 gap-4 max-sm:gap-2 w-full border-t mt-4 pt-4">
             <Button
-              className="w-full"
               variant="secondary"
-              disabled={isThinking}
+              disabled={isWriting}
               onClick={() => handleWriteFinalReport()}
             >
-              {isThinking ? (
+              {isWriting ? (
                 <>
                   <LoaderCircle className="animate-spin" />
-                  {t("research.common.writingReport")}
+                  <span className="mx-1">{status}</span>
                 </>
               ) : (
                 t("research.common.rewriteReport")
               )}
             </Button>
             <Button
-              className="w-full"
               onClick={() =>
                 downloadFile(
                   taskStore.finalReport,
-                  taskStore.question,
-                  "text/markdown"
+                  taskStore.title,
+                  "text/markdown;charset=utf-8"
                 )
               }
             >
               Markdown
             </Button>
-            <Button className="w-full" onClick={() => handleDownloadPDF()}>
-              PDF
-            </Button>
+            <Button onClick={() => handleDownloadPDF()}>PDF</Button>
           </div>
         </>
       )}

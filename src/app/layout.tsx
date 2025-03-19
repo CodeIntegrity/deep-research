@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import ThemeProvider from "@/components/Theme/Provider";
 import I18Provider from "@/components/I18nProvider";
@@ -11,6 +11,21 @@ const HEAD_SCRIPTS = process.env.HEAD_SCRIPTS as string;
 export const metadata: Metadata = {
   title: "Deep Research",
   description: "Deep Rssearch with Google Gemini Models",
+  icons: {
+    icon: {
+      type: "image/svg+xml",
+      url: "./logo.svg",
+    },
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1.0,
+  minimumScale: 1.0,
+  maximumScale: 1.0,
+  viewportFit: "cover",
+  userScalable: false,
 };
 
 export default function RootLayout({

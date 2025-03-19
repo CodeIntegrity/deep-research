@@ -55,7 +55,6 @@ function useDeepResearch() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
   const google = useGoogleProvider();
-  const [isThinking, setIsThinking] = useState<boolean>(false);
   const [status, setStatus] = useState<string>("");
 
   async function askQuestions() {
@@ -71,7 +70,7 @@ function useDeepResearch() {
       onError: handleError,
     });
     let content = "";
-    taskStore.updateQuestion(question);
+    taskStore.setQuestion(question);
     for await (const textPart of result.textStream) {
       content += textPart;
       taskStore.updateQuestions(content);
@@ -114,14 +113,14 @@ function useDeepResearch() {
 
   async function reviewSearchResult() {
     const { language } = useSettingStore.getState();
-    const { query, tasks } = useTaskStore.getState();
-    setStatus(t("research.common.review"));
+    const { query, tasks, suggestion } = useTaskStore.getState();
+    setStatus(t("research.common.research"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
       model: google("gemini-2.0-flash-thinking-exp"),
       system: getSystemPrompt(),
       prompt:
-        reviewSerpQueriesPrompt(query, learnings) +
+        reviewSerpQueriesPrompt(query, learnings, suggestion) +
         getResponseLanguagePrompt(language),
       experimental_transform: smoothStream(),
       onError: handleError,
@@ -156,7 +155,7 @@ function useDeepResearch() {
 
   async function writeFinalReport() {
     const { language } = useSettingStore.getState();
-    const { query, tasks } = useTaskStore.getState();
+    const { query, tasks, setTitle } = useTaskStore.getState();
     setStatus(t("research.common.writing"));
     const learnings = tasks.map((item) => item.learning);
     const result = streamText({
@@ -173,6 +172,8 @@ function useDeepResearch() {
       content += textPart;
       taskStore.updateFinalReport(content);
     }
+    const title = content.split("\n\n")[0].replaceAll("#", "").trim();
+    setTitle(title);
     const sources = flat(
       tasks.map((item) => (item.sources ? item.sources : []))
     );
@@ -193,7 +194,6 @@ function useDeepResearch() {
   async function deepResearch() {
     const { language } = useSettingStore.getState();
     const { query } = useTaskStore.getState();
-    setIsThinking(true);
     setStatus(t("research.common.thinking"));
     try {
       let queries = [];
@@ -232,18 +232,13 @@ function useDeepResearch() {
         }
       }
       await runSearchTask(queries);
-      await reviewSearchResult();
-      await writeFinalReport();
     } catch (err) {
       console.error(err);
-    } finally {
-      setIsThinking(false);
     }
   }
 
   return {
     status,
-    isThinking,
     deepResearch,
     askQuestions,
     runSearchTask,

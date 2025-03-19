@@ -1,9 +1,11 @@
 "use client";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
+import Magicdown from "@/components/Magicdown";
 import {
   Form,
   FormControl,
@@ -11,7 +13,6 @@ import {
   FormItem,
   FormLabel,
 } from "@/components/ui/form";
-import Magicdown from "@/components/Magicdown";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import useDeepResearch from "@/hooks/useDeepResearch";
@@ -25,12 +26,13 @@ const formSchema = z.object({
 function Feedback() {
   const { t } = useTranslation();
   const taskStore = useTaskStore();
-  const { status, isThinking, deepResearch } = useDeepResearch();
+  const { status, deepResearch } = useDeepResearch();
   const {
     formattedTime,
     start: accurateTimerStart,
     stop: accurateTimerStop,
   } = useAccurateTimer();
+  const [isThinking, setIsThinking] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,10 +48,12 @@ function Feedback() {
       `Follow-up Questions: ${questions}`,
       `Follow-up Feedback: ${values.feedback}`,
     ].join("\n\n");
-    taskStore.updateQuery(prompt);
+    taskStore.setQuery(prompt);
     try {
       accurateTimerStart();
+      setIsThinking(true);
       await deepResearch();
+      setIsThinking(false);
     } finally {
       accurateTimerStop();
     }
@@ -81,6 +85,7 @@ function Feedback() {
                       <Textarea
                         rows={3}
                         placeholder={t("research.feedback.feedbackPlaceholder")}
+                        disabled={isThinking}
                         {...field}
                       />
                     </FormControl>

@@ -6,12 +6,12 @@
       "startThinking": "Start Thinking",
       "thinkingQuestion": "Thinking Question...",
       "startResearch": "Start Research",
-      "writingReport": "Writing Report",
+      "writeReport": "Write Report",
+      "continueResearch": "Continue Research",
       "rewriteReport": "Rewrite Report",
       "sources": "Sources",
       "thinking": "Thinking...",
       "research": "Research...",
-      "review": "Review...",
       "writing": "Writing..."
     },
     "topic": {
@@ -22,12 +22,14 @@
     "feedback": {
       "title": "2. Ask Question",
       "emptyTip": "Waiting for research topic...",
-      "feedbackLabel": "Your Answer",
+      "feedbackLabel": "Your Answer (Optional)",
       "feedbackPlaceholder": "You can answer whatever you want..."
     },
     "searchResult": {
       "title": "3. Information Collection",
-      "emptyTip": "Waiting for research task..."
+      "emptyTip": "Waiting for research task...",
+      "suggestionLabel": "Research suggestions (Optional)",
+      "suggestionPlaceholder": "Whether to add or adjust research directions..."
     },
     "finalReport": {
       "title": "4. Final Report",

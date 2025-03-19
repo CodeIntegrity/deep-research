@@ -5,14 +5,18 @@ type TaskStore = {
   questions: string;
   finalReport: string;
   query: string;
+  title: string;
+  suggestion: string;
   tasks: SearchTask[];
 };
 
 type TaskFunction = {
   update: (tasks: SearchTask[]) => void;
-  updateQuery: (query: string) => void;
+  setTitle: (title: string) => void;
+  setSuggestion: (suggestion: string) => void;
+  setQuery: (query: string) => void;
   updateTask: (query: string, task: Partial<SearchTask>) => void;
-  updateQuestion: (question: string) => void;
+  setQuestion: (question: string) => void;
   updateQuestions: (questions: string) => void;
   updateFinalReport: (report: string) => void;
   clear: () => void;
@@ -23,16 +27,20 @@ export const useTaskStore = create<TaskStore & TaskFunction>((set, get) => ({
   questions: "",
   finalReport: "",
   query: "",
+  title: "",
+  suggestion: "",
   tasks: [],
   update: (tasks) => set(() => ({ tasks: [...tasks] })),
-  updateQuery: (query) => set(() => ({ query })),
+  setTitle: (title) => set(() => ({ title })),
+  setSuggestion: (suggestion) => set(() => ({ suggestion })),
+  setQuery: (query) => set(() => ({ query })),
   updateTask: (query, task) => {
     const newTasks = get().tasks.map((item) => {
       return item.query === query ? { ...item, ...task } : item;
     });
     set(() => ({ tasks: [...newTasks] }));
   },
-  updateQuestion: (question) => set(() => ({ question })),
+  setQuestion: (question) => set(() => ({ question })),
   updateQuestions: (questions) => set(() => ({ questions })),
   updateFinalReport: (report) => set(() => ({ finalReport: report })),
   clear: () => set(() => ({ tasks: [] })),
