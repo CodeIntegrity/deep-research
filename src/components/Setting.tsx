@@ -185,7 +185,6 @@ function Setting({ open, onClose }: SettingProps) {
       const { availableModelList, disabledModelList } = getCustomModelList(
         MODEL_LIST.length > 0 ? MODEL_LIST.split(",") : []
       );
-      console.log(availableModelList, disabledModelList);
       const isAvailableModel = availableModelList.some(
         (availableModel) => availableModel === model
       );
@@ -1833,11 +1832,57 @@ function Setting({ open, onClose }: SettingProps) {
                           {t("setting.thinkingModel")}
                           <span className="ml-1 text-red-500">*</span>
                         </FormLabel>
-                        <FormControl className="col-span-3 w-full">
-                          <Input
-                            placeholder={t("setting.modelListPlaceholder")}
-                            {...field}
-                          />
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <div
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                            >
+                              <Input
+                                placeholder={t("setting.modelListPlaceholder")}
+                                {...field}
+                              />
+                            </div>
+                            <div className="w-full flex gap-2">
+                              <Select
+                                defaultValue={field.value}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger
+                                  className={cn("flex-1", {
+                                    hidden: modelList.length === 0,
+                                  })}
+                                >
+                                  <SelectValue
+                                    placeholder={t(
+                                      "setting.modelListLoadingPlaceholder"
+                                    )}
+                                  />
+                                </SelectTrigger>
+                                <SelectContent className="max-sm:max-h-72">
+                                  {thinkingModelList[1].map((name) => {
+                                    return !isDisabledAIModel(name) ? (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    ) : null;
+                                  })}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                disabled={isRefreshing}
+                                onClick={() => fetchModelList()}
+                              >
+                                <RefreshCw
+                                  className={isRefreshing ? "animate-spin" : ""}
+                                />
+                              </Button>
+                            </div>
+                          </div>
                         </FormControl>
                       </FormItem>
                     )}
@@ -1851,11 +1896,57 @@ function Setting({ open, onClose }: SettingProps) {
                           {t("setting.networkingModel")}
                           <span className="ml-1 text-red-500">*</span>
                         </FormLabel>
-                        <FormControl className="col-span-3 w-full">
-                          <Input
-                            placeholder={t("setting.modelListPlaceholder")}
-                            {...field}
-                          />
+                        <FormControl>
+                          <div className="col-span-3 w-full">
+                            <div
+                              className={cn("w-full", {
+                                hidden: modelList.length > 0,
+                              })}
+                            >
+                              <Input
+                                placeholder={t("setting.modelListPlaceholder")}
+                                {...field}
+                              />
+                            </div>
+                            <div className="w-full flex gap-2">
+                              <Select
+                                defaultValue={field.value}
+                                onValueChange={field.onChange}
+                              >
+                                <SelectTrigger
+                                  className={cn("flex-1", {
+                                    hidden: modelList.length === 0,
+                                  })}
+                                >
+                                  <SelectValue
+                                    placeholder={t(
+                                      "setting.modelListLoadingPlaceholder"
+                                    )}
+                                  />
+                                </SelectTrigger>
+                                <SelectContent className="max-sm:max-h-72">
+                                  {networkingModelList[1].map((name) => {
+                                    return !isDisabledAIModel(name) ? (
+                                      <SelectItem key={name} value={name}>
+                                        {convertModelName(name)}
+                                      </SelectItem>
+                                    ) : null;
+                                  })}
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                disabled={isRefreshing}
+                                onClick={() => fetchModelList()}
+                              >
+                                <RefreshCw
+                                  className={isRefreshing ? "animate-spin" : ""}
+                                />
+                              </Button>
+                            </div>
+                          </div>
                         </FormControl>
                       </FormItem>
                     )}
