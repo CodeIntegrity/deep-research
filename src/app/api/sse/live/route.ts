@@ -36,6 +36,8 @@ export async function GET(req: NextRequest) {
     getValueFromSearchParams("enableCitationImage") === "false";
   const enableReferences =
     getValueFromSearchParams("enableReferences") === "false";
+  const enableFileFormatResource =
+    getValueFromSearchParams("enableFileFormatResource") === "true";
 
   const encoder = new TextEncoder();
   const readableStream = new ReadableStream({
@@ -62,7 +64,9 @@ export async function GET(req: NextRequest) {
           maxResult,
         },
         onMessage: (event, data) => {
-          if (event === "progress") {
+          if (event === "message") {
+            controller.enqueue(encoder.encode(data.text));
+          } else if (event === "progress") {
             console.log(
               `[${data.step}]: ${data.name ? `"${data.name}" ` : ""}${
                 data.status
@@ -75,9 +79,6 @@ export async function GET(req: NextRequest) {
             console.error(data);
             controller.close();
           }
-          if (event === "message") {
-            controller.enqueue(encoder.encode(data.text));
-          }
         },
       });
 
@@ -86,7 +87,12 @@ export async function GET(req: NextRequest) {
       });
 
       try {
-        await deepResearch.start(query, enableCitationImage, enableReferences);
+        await deepResearch.start(
+          query,
+          enableCitationImage,
+          enableReferences,
+          enableFileFormatResource
+        );
       } catch (err) {
         throw new Error(err instanceof Error ? err.message : "Unknown error");
       }

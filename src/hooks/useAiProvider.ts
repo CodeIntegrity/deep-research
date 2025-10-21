@@ -22,6 +22,7 @@ function useModelProvider() {
   async function createModelProvider(model: string, settings?: any) {
     const { mode, provider, accessPassword } = useSettingStore.getState();
     const options: AIProviderOptions = {
+      baseURL: "",
       provider,
       model,
       settings,
@@ -37,7 +38,31 @@ function useModelProvider() {
           );
           options.apiKey = multiApiKeyPolling(apiKey);
         } else {
-          options.baseURL = "/api/ai/google/v1beta";
+          options.baseURL = location.origin + "/api/ai/google/v1beta";
+        }
+        break;
+      case "google-vertex":
+        const {
+          googleVertexProject,
+          googleVertexLocation,
+          googleClientEmail,
+          googlePrivateKey,
+          googlePrivateKeyId,
+        } = useSettingStore.getState();
+        if (mode === "local") {
+          options.auth = {
+            project: googleVertexProject,
+            location: googleVertexLocation,
+          };
+          if (googleClientEmail && googlePrivateKey) {
+            options.auth.clientEmail = googleClientEmail;
+            options.auth.privateKey = googlePrivateKey;
+            if (googlePrivateKeyId) {
+              options.auth.privateKeyId = googlePrivateKeyId;
+            }
+          }
+        } else {
+          options.baseURL = location.origin + "/api/ai/google-vertex";
         }
         break;
       case "openai":
@@ -50,7 +75,7 @@ function useModelProvider() {
           );
           options.apiKey = multiApiKeyPolling(openAIApiKey);
         } else {
-          options.baseURL = "/api/ai/openai/v1";
+          options.baseURL = location.origin + "/api/ai/openai/v1";
         }
         break;
       case "anthropic":
@@ -67,7 +92,7 @@ function useModelProvider() {
           };
           options.apiKey = multiApiKeyPolling(anthropicApiKey);
         } else {
-          options.baseURL = "/api/ai/anthropic/v1";
+          options.baseURL = location.origin + "/api/ai/anthropic/v1";
         }
         break;
       case "deepseek":
@@ -80,7 +105,7 @@ function useModelProvider() {
           );
           options.apiKey = multiApiKeyPolling(deepseekApiKey);
         } else {
-          options.baseURL = "/api/ai/deepseek/v1";
+          options.baseURL = location.origin + "/api/ai/deepseek/v1";
         }
         break;
       case "xai":
@@ -89,7 +114,7 @@ function useModelProvider() {
           options.baseURL = completePath(xAIApiProxy || XAI_BASE_URL, "/v1");
           options.apiKey = multiApiKeyPolling(xAIApiKey);
         } else {
-          options.baseURL = "/api/ai/xai/v1";
+          options.baseURL = location.origin + "/api/ai/xai/v1";
         }
         break;
       case "mistral":
@@ -102,30 +127,37 @@ function useModelProvider() {
           );
           options.apiKey = multiApiKeyPolling(mistralApiKey);
         } else {
-          options.baseURL = "/api/ai/mistral/v1";
+          options.baseURL = location.origin + "/api/ai/mistral/v1";
         }
         break;
       case "azure":
-        const { azureApiKey = "", azureResourceName } =
-          useSettingStore.getState();
+        const {
+          azureApiKey = "",
+          azureResourceName,
+          azureApiVersion,
+        } = useSettingStore.getState();
         if (mode === "local") {
-          options.baseURL = `https://${azureResourceName}.openai.azure.com/openai/deployments`;
-          options.apiKey = multiApiKeyPolling(azureApiKey);
+          options.auth = {
+            resourceName: azureResourceName,
+            apiKey: multiApiKeyPolling(azureApiKey),
+            apiVersion: azureApiVersion,
+          };
         } else {
-          options.baseURL = "/api/ai/azure";
+          options.baseURL = location.origin + "/api/ai/azure";
         }
         break;
       case "openrouter":
         const { openRouterApiKey = "", openRouterApiProxy } =
           useSettingStore.getState();
         if (mode === "local") {
+          const baseUrl = openRouterApiProxy || OPENROUTER_BASE_URL;
           options.baseURL = completePath(
-            openRouterApiProxy || OPENROUTER_BASE_URL,
-            "/api/v1"
+            baseUrl,
+            baseUrl.endsWith("/api") ? "/v1" : "/api/v1"
           );
           options.apiKey = multiApiKeyPolling(openRouterApiKey);
         } else {
-          options.baseURL = "/api/ai/openrouter/api/v1";
+          options.baseURL = location.origin + "/api/ai/openrouter/api/v1";
         }
         break;
       case "openaicompatible":
@@ -135,7 +167,7 @@ function useModelProvider() {
           options.baseURL = completePath(openAICompatibleApiProxy, "/v1");
           options.apiKey = multiApiKeyPolling(openAICompatibleApiKey);
         } else {
-          options.baseURL = "/api/ai/openaicompatible/v1";
+          options.baseURL = location.origin + "/api/ai/openaicompatible/v1";
         }
         break;
       case "pollinations":
@@ -146,7 +178,7 @@ function useModelProvider() {
             "/v1"
           );
         } else {
-          options.baseURL = "/api/ai/pollinations/v1";
+          options.baseURL = location.origin + "/api/ai/pollinations/v1";
         }
         break;
       case "ollama":
@@ -157,7 +189,7 @@ function useModelProvider() {
             "/api"
           );
         } else {
-          options.baseURL = "/api/ai/ollama/api";
+          options.baseURL = location.origin + "/api/ai/ollama/api";
           options.headers = {
             Authorization: generateSignature(accessPassword, Date.now()),
           };
@@ -170,6 +202,7 @@ function useModelProvider() {
     if (mode === "proxy") {
       options.apiKey = generateSignature(accessPassword, Date.now());
     }
+
     return await createAIProvider(options);
   }
 
@@ -180,6 +213,13 @@ function useModelProvider() {
       case "google":
         const { thinkingModel, networkingModel } = useSettingStore.getState();
         return { thinkingModel, networkingModel };
+      case "google-vertex":
+        const { googleVertexThinkingModel, googleVertexNetworkingModel } =
+          useSettingStore.getState();
+        return {
+          thinkingModel: googleVertexThinkingModel,
+          networkingModel: googleVertexNetworkingModel,
+        };
       case "openai":
         const { openAIThinkingModel, openAINetworkingModel } =
           useSettingStore.getState();
@@ -264,6 +304,10 @@ function useModelProvider() {
       case "google":
         const { apiKey } = useSettingStore.getState();
         return apiKey.length > 0;
+      case "google-vertex":
+        const { googleVertexProject, googleVertexLocation } =
+          useSettingStore.getState();
+        return googleVertexProject !== "" && googleVertexLocation !== "";
       case "openai":
         const { openAIApiKey } = useSettingStore.getState();
         return openAIApiKey.length > 0;

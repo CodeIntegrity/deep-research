@@ -6,6 +6,13 @@ export interface SettingStore {
   mode: string;
   apiKey: string;
   apiProxy: string;
+  googleVertexProject: string;
+  googleVertexLocation: string;
+  googleClientEmail: string;
+  googlePrivateKey: string;
+  googlePrivateKeyId: string;
+  googleVertexThinkingModel: string;
+  googleVertexNetworkingModel: string;
   openRouterApiKey: string;
   openRouterApiProxy: string;
   openRouterThinkingModel: string;
@@ -67,12 +74,15 @@ export interface SettingStore {
   crawler: string;
   language: string;
   theme: string;
-  debug: string;
-  references: string;
-  citationImage: string;
+  debug: "enable" | "disable";
+  references: "enable" | "disable";
+  citationImage: "enable" | "disable";
+  smoothTextStreamType: "character" | "word" | "line";
+  onlyUseLocalResource: "enable" | "disable";
+  useFileFormatResource: "enable" | "disable";
 }
 
-interface SettingFunction {
+interface SettingActions {
   update: (values: Partial<SettingStore>) => void;
   reset: () => void;
 }
@@ -83,7 +93,14 @@ export const defaultValues: SettingStore = {
   apiKey: "",
   apiProxy: "",
   thinkingModel: "gemini-2.0-flash-thinking-exp",
-  networkingModel: "gemini-2.0-flash-exp",
+  networkingModel: "gemini-2.0-flash",
+  googleVertexProject: "",
+  googleVertexLocation: "",
+  googleClientEmail: "",
+  googlePrivateKey: "",
+  googlePrivateKeyId: "",
+  googleVertexThinkingModel: "",
+  googleVertexNetworkingModel: "",
   openRouterApiKey: "",
   openRouterApiProxy: "",
   openRouterThinkingModel: "",
@@ -146,10 +163,13 @@ export const defaultValues: SettingStore = {
   debug: "disable",
   references: "enable",
   citationImage: "enable",
+  smoothTextStreamType: "word",
+  onlyUseLocalResource: "disable",
+  useFileFormatResource: "disable",
 };
 
 export const useSettingStore = create(
-  persist<SettingStore & SettingFunction>(
+  persist<SettingStore & SettingActions>(
     (set) => ({
       ...defaultValues,
       update: (values) => set(values),

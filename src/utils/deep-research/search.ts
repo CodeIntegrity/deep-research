@@ -131,7 +131,7 @@ export async function createSearchProvider({
   apiKey = "",
   query,
   maxResult = 5,
-  scope = "all",
+  scope,
 }: SearchProviderOptions) {
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -146,14 +146,14 @@ export async function createSearchProvider({
         headers,
         credentials: "omit",
         body: JSON.stringify({
-          query,
+          query: query.replaceAll("\\", "").replaceAll('"', ""),
           search_depth: "advanced",
           topic: scope || "general",
           max_results: Number(maxResult),
           include_images: true,
           include_image_descriptions: true,
           include_answer: false,
-          include_raw_content: true,
+          include_raw_content: "markdown",
         }),
       }
     );
@@ -209,7 +209,7 @@ export async function createSearchProvider({
         credentials: "omit",
         body: JSON.stringify({
           query,
-          category: scope || "general",
+          category: scope || "research paper",
           contents: {
             text: true,
             summary: {
@@ -313,12 +313,12 @@ export async function createSearchProvider({
     for (const [key, value] of Object.entries(params)) {
       searchQuery.append(key, value.toString());
     }
-
+    const local = global.location || {};
     const response = await fetch(
       `${completePath(
         baseURL || SEARXNG_BASE_URL
       )}/search?${searchQuery.toString()}`,
-      baseURL?.startsWith("/api/search/searxng")
+      baseURL?.startsWith(local.origin)
         ? { method: "POST", credentials: "omit", headers }
         : { method: "GET", credentials: "omit" }
     );
@@ -330,13 +330,7 @@ export async function createSearchProvider({
     );
     return {
       sources: rearrangedResults
-        .filter(
-          (item) =>
-            item.category === "general" &&
-            item.content &&
-            item.url &&
-            item.score >= 0.5
-        )
+        .filter((item) => item.content && item.url && item.score >= 0.5)
         .slice(0, maxResult * 5)
         .map((result) => pick(result, ["title", "content", "url"])) as Source[],
       images: rearrangedResults
