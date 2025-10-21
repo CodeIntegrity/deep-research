@@ -1,9 +1,27 @@
 # Deep Research 仓库结构概览与代码健康报告
 
 生成时间：2025-10-21（UTC）
-目标分支：deep-research-audit-structure-issues
+目标分支：main（HEAD ad2f643）
 
 本报告基于对仓库进行只读扫描得出，未对源码进行修改。若需复查，请参照文末给出的命令在本地执行。
+
+---
+
+## 0. 自上次报告以来的变更
+
+基线说明：上一份报告未记录具体 HEAD 短 SHA。本次以当前 main 的最新提交为基线：ad2f643（2025-10-21）。
+
+变更摘要（与上次报告相比）：
+- 代码/配置：未检测到仓库历史中的增量差异（当前仓库历史为单提交快照，无法比对更早基线）。
+- 依赖锁文件（pnpm-lock.yaml）：未检测到新增变更。
+- CI 工作流（.github/workflows）：无新增或删除，文件内容保持不变（docker.yml、ghcr.yml、issue-translator.yml、sync.yml）。
+- API 路由与 UI 组件：未检测到新增/删除文件。
+
+复跑关键检查结论（详见下文各节）：
+- ESLint：通过（0 warnings / 0 errors）。
+- TypeScript：通过（tsc --noEmit）。
+- Prettier：未配置（未运行）。
+- 依赖安全：pnpm audit 显示中等（moderate）风险 6 项，涉及 next、mermaid、jsondiffpatch（经 ai 间接依赖）等，建议升级。
 
 ---
 
@@ -40,7 +58,7 @@
 │  ├─ components/               # UI 组件（Setting、History、Research、MagicDown 等）
 │  ├─ constants/                # 常量（urls、prompts、locales）
 │  ├─ hooks/                    # 自定义 hooks（useDeepResearch / useKnowledge 等）
-│  ├─ libs/mcp-server/          # MCP server 实现（streamable-http / sse 等）
+│  ├─ libs/mcp-server/          # MCP server 实现（streamable-http / SSE 等）
 │  ├─ locales/                  # i18n 文本（en-US.json / zh-CN.json / es-ES.json）
 │  ├─ middleware.ts             # API 路由访问控制、中间件
 │  ├─ store/                    # Zustand 状态管理模块（global/setting/task/...）
@@ -64,24 +82,24 @@
 
 ## 2. 关键统计与发现概览
 
-基础统计（排除 .git）：
-- 文件总数：162
-- 按扩展名计数（Top）：ts 73，tsx 51，json 9，yml 7，mjs 3，md 3，css 3，png 2，yaml 1，svg 1，其它若干
+基础统计（排除 .git 与 node_modules）：
+- 文件总数：168
+- 按扩展名计数（Top）：ts 76，tsx 51，json 10，yml 7，md 5，mjs 3，css 3，png 2，yaml 1，其它若干
 - 行数（按常见文本类型）：
-  - ts 14210，tsx 8665，js 8，mjs 48，json 1224，css 313，md 805，yml 371，yaml 8636，toml 10
-  - 主要语言占比（粗略按行统计，代码+配置合计约 34K 行）：
-    - TypeScript/TSX ≈ 66–67%
-    - YAML（含 pnpm-lock.yaml）≈ 25%
-    - 其余（JSON/CSS/MD/JS/MJS）≈ 8–9%
+  - ts 14699，tsx 8993，js 8，mjs 48，json 1596，css 313，md 1217，yml 371，yaml 8963，toml 10
+  - 主要语言占比（粗略按行统计，代码+配置合计约 35K 行）：
+    - TypeScript/TSX ≈ 67–68%
+    - YAML（含 pnpm-lock.yaml）≈ 24–25%
+    - 其余（JSON/CSS/MD/JS/MJS）≈ 7–9%
 
 体积与大文件：
-- 最大目录（深度 1，apparent size）：public 1.5M、src 782K、pnpm-lock.yaml 292K
+- 最大目录（深度 1，apparent size）：public 1.5M、src 827K、pnpm-lock.yaml 302K
 - 最大文件：
   - public/scripts/pdf.worker.min.mjs（1.03M，第三方 PDF worker）
   - public/scripts/eruda.min.js（0.45M，移动端调试工具）
-  - pnpm-lock.yaml（0.29M，依赖锁）
-  - src/components/Setting.tsx（0.15M，组件文件较大，建议拆分）
-  - src/libs/mcp-server/*.ts（~44–46K，协议实现较重）
+  - pnpm-lock.yaml（0.30M，依赖锁）
+  - src/components/Setting.tsx（0.16M，组件文件较大，建议拆分）
+  - src/libs/mcp-server/*.ts（~44–47K，协议实现较重）
 
 二进制/第三方制品与临时文件占比（估算）：
 - 二进制/大制品：图片（png 2 个）、第三方压缩脚本（2 个）等，占比约 2–5%。
@@ -90,10 +108,9 @@
 注释与待办（TODO/FIXME/HACK/XXX）：
 - src/utils/parser/officeParser.ts 存在 TODO（调试断言/健壮性注释）。
 - public/scripts/pdf.worker.min.mjs（上游压缩产物，包含 XXX 标记，非本仓库维护）。
-- 其余源码中未发现大量 TODO/FIXME 标记。
 
 行尾与编码：
-- 检测到部分 TypeScript 文件存在 CRLF 行尾（与其他 LF 混用），建议统一为 LF 并通过 .editorconfig/.gitattributes 约束。
+- 复查结果：未检测到 CRLF 行尾（文本文件统一为 LF）。上次报告中的“行尾不一致”问题不可复现，视为已关闭。
 
 安全/权限：
 - 未发现带可执行权限的脚本文件（repo 内）。
@@ -113,20 +130,16 @@
   - 未检测到 Prettier 配置
 - 其他语言：未检测到 Go/Rust/Python 项目结构或工具配置
 
-尝试运行的工具与结果（本次仅记录预期命令，未实际执行）：
-- 受限说明：当前环境未安装 node_modules，且工单要求不引入新依赖；因此未实际运行以下命令。
-- 预期命令：
-  - Lint：pnpm run lint（等价 next lint => eslint）
-  - 类型检查：pnpm exec tsc --noEmit -p tsconfig.json
-  - 格式化（若引入 Prettier 后）：pnpm exec prettier -c "**/*"
-  - 依赖审计（若允许联网）：pnpm audit 或 npm audit
-  - 循环依赖检查（推荐）：pnpm dlx madge --circular --extensions ts,tsx src
+实际运行的工具与结果：
+- Lint：pnpm run lint → 通过（无警告/错误）
+- 类型检查：pnpm exec tsc --noEmit -p tsconfig.json → 通过
+- 格式化（Prettier）：未配置，未运行
+- 依赖审计：pnpm audit（见“依赖与安全”）
 
 启发式检查与建议：
-- 体量过大的组件：src/components/Setting.tsx ~154KB，建议按功能模块拆分（表单段/分组配置/异步逻辑拆离 hook）。
+- 体量过大的组件：src/components/Setting.tsx ~166KB，建议按功能模块拆分（表单段/分组配置/异步逻辑拆离 hook）。
 - 日志：多处 API route/middleware 有 console.* 输出（错误场景为主），建议：
   - 保留 error/warn，移除生产环境冗余 log 或使用条件编译/环境变量控制。
-- 行尾不一致（CRLF/LF 混用）：统一为 LF；新增 .editorconfig/.gitattributes（见 Backlog）。
 - parser 目录：office/pdf 解析逻辑较复杂，建议补充单元测试与示例用例；TODO 注释处可补充分支断言与异常路径测试。
 - 循环依赖：未执行静态工具检测，建议使用 madge 检查。
 
@@ -136,12 +149,19 @@
 
 - 包管理：pnpm（pnpm-lock.yaml 存在），Node engines: ">= 18.18.0"（.node-version 为 18.18.0）。
 - 许可证：MIT（根 LICENSE）。
-- 审计与升级：
-  - 预期命令：
-    - pnpm audit（或 npm audit）
-    - pnpm outdated（查看过期依赖）
-    - 如需安全数据库：OSV-Scanner（需额外安装），Snyk（SaaS）
-  - 本次未联网、未安装依赖，未执行上述命令。
+- 审计与升级（pnpm audit --prod）：
+  - 漏洞统计：moderate 6，high/critical 0（当前快照）
+  - 代表性问题与建议：
+    - next（CVE-2025-57752，图像优化缓存键混淆；CVE-2025-57822，中间件跳转导致 SSRF）
+      - 受影响：>=15.0.0-canary.0 <15.4.7；仓库版本 ^15.3.1
+      - 建议：升级到 >= 15.4.7（建议直接到最新 15.5.x）
+    - mermaid（CVE-2025-54880，architecture iconText XSS）
+      - 受影响：>=11.1.0 <11.10.0；仓库版本 11.6.0
+      - 建议：升级到 >= 11.10.0（建议 11.12.x）
+    - jsondiffpatch（GHSA-33vc-wfww-vjfv，HtmlFormatter XSS）通过 ai 间接依赖
+      - 受影响：<0.7.2；审计路径显示 .>ai>jsondiffpatch 0.6.0
+      - 建议：升级到 >= 0.7.2；或升级 ai 至最新版以获取安全依赖链
+  - 过期依赖：pnpm outdated 显示 next、mermaid、ai、各类 @radix-ui/*、react、react-dom、typescript、eslint-config-next 等均有可升级空间。
 - 第三方前端制品：public/scripts/ 下的 eruda.min.js、pdf.worker.min.mjs 建议标注来源与版本，定期跟进升级（或采用 CDN 指定版本）。
 
 ---
@@ -172,25 +192,30 @@
 ## 7. 问题清单（按严重度）
 
 critical：
-- 行尾不一致（CRLF/LF 混用）
-  - 路径：多处 src/**/*.ts*（样例：src/middleware.ts、src/store/*.ts、src/hooks/*.ts 等）
-  - 影响：跨平台 diff/合并冲突、工具链（lint/format）不稳定。
-  - 复现：grep -rIU --include='*.ts*' $'\r\n' src
-  - 修复建议：新增 .editorconfig 与 .gitattributes，统一 LF；执行 git add --renormalize .；在 CI 中校验
-  - 参考：EditorConfig, Git attributes eol
+- （无）
 
 high：
-- 大体积组件难以维护（Setting.tsx ~154KB）
+- 大体积组件难以维护（Setting.tsx ~166KB）
   - 路径：src/components/Setting.tsx
   - 影响：认知负载高、变更风险高、测试困难。
   - 建议：按页面分区/表单段落拆分子组件；重逻辑下沉到 hooks；添加单元测试覆盖
 
-- 缺少自动化质量门禁
+- 缺少自动化质量门禁（push/PR 未做 Lint/TypeCheck/Build）
   - 路径：CI 仅有发布流，无 push/PR lint/typecheck/build
   - 影响：回归风险、质量波动
   - 建议：新增 Lint + TypeCheck + Build 工作流；可选引入 pnpm audit --audit-level=high
 
+- 依赖存在已知漏洞（Next.js、Mermaid 等）
+  - 影响：安全风险（SSRF、缓存混淆、XSS）
+  - 建议：
+    - next 升级到 >= 15.4.7（建议最新 15.5.x）
+    - mermaid 升级到 >= 11.10.0（建议 11.12.x）
+
 medium：
+- 通过间接依赖引入的 jsondiffpatch XSS 风险
+  - 路径：.>ai>jsondiffpatch
+  - 建议：升级 jsondiffpatch 至 >=0.7.2 或升级 ai 到 5.x（或最新）以带来安全依赖
+
 - 缺少 Prettier 配置与统一格式化流程
   - 影响：格式差异与审阅成本
   - 建议：引入 Prettier（与 eslint-config-prettier 协同），CI 校验
@@ -214,78 +239,65 @@ low：
   - 路径：多个 API route 与 middleware
   - 建议：生产仅保留必要 error/warn，或引入轻量日志库分级
 
+已修复/关闭（相较上次报告）：
+- 行尾不一致（CRLF/LF 混用）— 本次复查未复现，视为关闭。
+
 ---
 
-## 8. 自动工具的运行命令与版本（计划/记录）
+## 8. 自动工具的运行命令与版本（记录）
 
 - Node/包管理：
   - Node 要求：>= 18.18.0（.node-version: 18.18.0）
   - 包管理：pnpm（pnpm-lock.yaml 存在）
-- Lint（未执行）：
-  - pnpm run lint
-- TypeCheck（未执行）：
-  - pnpm exec tsc --noEmit -p tsconfig.json
+- Lint：
+  - 实际执行：pnpm run lint → 通过
+- TypeCheck：
+  - 实际执行：pnpm exec tsc --noEmit -p tsconfig.json → 通过
 - 格式化（需引入 Prettier 后）：
-  - pnpm exec prettier -c "**/*"
-- 依赖安全（未执行）：
-  - pnpm audit / npm audit
-  - OSV-Scanner（需单独安装）
+  - 建议：pnpm exec prettier -c "**/*"
+- 依赖安全（已执行）：
+  - pnpm audit（moderate 6）
+  - 如需更全面：OSV-Scanner（需单独安装）
 - 循环依赖（未执行，建议）：
   - pnpm dlx madge --circular --extensions ts,tsx src
-
-未执行原因：当前只读分析且未安装依赖/不引入新依赖；如需落地，请在开发环境执行上述命令。
 
 ---
 
 ## 9. 附录：统计输出（节选）
 
-- 最大文件（Top 10）：
+- 最大文件（Top 10，排除 .next 与 *.tsbuildinfo）：
 ```
 1032428  ./public/scripts/pdf.worker.min.mjs
 474767   ./public/scripts/eruda.min.js
-298608   ./pnpm-lock.yaml
-153931   ./src/components/Setting.tsx
+308945   ./pnpm-lock.yaml
+166809   ./src/components/Setting.tsx
 46935    ./src/libs/mcp-server/mcp.ts
 45947    ./src/libs/mcp-server/streamableHttp.ts
 44171    ./src/libs/mcp-server/types.ts
-30694    ./src/utils/parser/officeParser.ts
-23011    ./src/middleware.ts
-20765    ./public/screenshots/main-interface.png
+30738    ./src/utils/parser/officeParser.ts
+24459    ./src/middleware.ts
+23291    ./src/hooks/useDeepResearch.ts
 ```
 
 - 目录体积（深度 1）：
 ```
 public 1.5M
-src    782K
-pnpm-lock.yaml 292K
+src    827K
+pnpm-lock.yaml 302K
 ```
 
 - 行数（按扩展名）：
 ```
-ts  14210
-tsx 8665
-js  8
-mjs 48
-json 1224
-css 313
-md  805
-yml 371
-yaml 8636
+ts   14699
+tsx  8993
+js   8
+mjs  48
+json 1596
+css  313
+md   1217
+yml  371
+yaml 8963
 toml 10
-```
-
-- CRLF 检测样例（文本类）：
-```
-src/types.d.ts
-src/middleware.ts
-src/store/global.ts
-src/store/setting.ts
-src/store/task.ts
-src/store/knowledge.ts
-src/store/history.ts
-src/hooks/useWebSearch.ts
-src/hooks/useModelList.ts
-src/hooks/useMobile.ts
 ```
 
 - TODO/FIXME/HACK/XXX 摘要：
